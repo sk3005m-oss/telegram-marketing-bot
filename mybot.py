@@ -5,6 +5,14 @@ import os
 from telegram import Bot
 from telegram.error import TelegramError
 
+# تست نصب بودن requests
+try:
+    import requests
+    HAS_REQUESTS = True
+except ImportError:
+    HAS_REQUESTS = False
+    print("⚠️ requests not installed")
+
 TOKEN = "8456671330:AAFQ0JD_Cf-UpGCEqVahCPGvq_RNdz1hsx4"
 ADMIN_CHAT_ID = 100710165
 
@@ -26,6 +34,17 @@ ADVERTISEMENT_TEXT = """ربات فروشگاهی حرفه ای
 
 قیمت: ۱٫۵ میلیون تومان"""
 
+def keep_alive():
+    """تابع نگه داشتن ربات فعال"""
+    if HAS_REQUESTS:
+        try:
+            requests.get("https://api.telegram.org", timeout=5)
+            print("🫀 keep-alive executed")
+        except:
+            print("🫀 keep-alive failed")
+    else:
+        print("🫀 keep-alive skipped (no requests)")
+
 async def send_advertisement():
     bot = Bot(token=TOKEN)
     
@@ -38,6 +57,9 @@ async def send_advertisement():
 
 async def main():
     while True:
+        # اجرای keep-alive
+        keep_alive()
+        
         print("🕒 شروع ارسال پیام...")
         await send_advertisement()
         print("⏳ منتظر ۲ ساعت...")
