@@ -1,11 +1,18 @@
-# marketing_bot.py
+# mybot.py
 import logging
 import asyncio
+import os
+import time
+import requests
 from telegram import Bot
 from telegram.error import TelegramError
 
 TOKEN = "8456671330:AAFQ0JD_Cf-UpGCEqVahCPGvq_RNdz1hsx4"
 ADMIN_CHAT_ID = 100710165
+
+# دریافت گروه‌ها از محیط یا پیش‌فرض
+GROUP_IDS = os.getenv('GROUP_IDS', '100710165')
+GROUP_LIST = [int(x.strip()) for x in GROUP_IDS.split(',')]
 
 ADVERTISEMENT_TEXT = """ربات فروشگاهی حرفه ای
 
@@ -22,7 +29,13 @@ ADVERTISEMENT_TEXT = """ربات فروشگاهی حرفه ای
 
 قیمت: ۱٫۵ میلیون تومان"""
 
-GROUP_LIST = [100710165]
+def keep_alive():
+    """تابع نگه داشتن ربات فعال"""
+    try:
+        requests.get("https://api.telegram.org", timeout=5)
+        print("🫀 keep-alive executed")
+    except:
+        print("🫀 keep-alive failed (normal)")
 
 async def send_advertisement():
     bot = Bot(token=TOKEN)
@@ -31,25 +44,23 @@ async def send_advertisement():
         try:
             await bot.send_message(chat_id=group_id, text=ADVERTISEMENT_TEXT)
             print(f"✅ پیام به {group_id} ارسال شد")
-            return
         except TelegramError as e:
             print(f"❌ خطا: {e}")
-    
-    try:
-        await bot.send_message(chat_id=ADMIN_CHAT_ID, text="✅ ربات فعال است")
-        print("📨 گزارش به ادمین ارسال شد")
-    except Exception as e:
-        print(f"❌ خطا در ارسال گزارش: {e}")
 
 async def main():
     while True:
+        # اجرای keep-alive قبل از ارسال
+        keep_alive()
+        
         print("🕒 شروع ارسال پیام...")
         await send_advertisement()
         print("⏳ منتظر ۲ ساعت...")
-        await asyncio.sleep(2 * 60 * 60)  # 🎯 حالا ۲ ساعت
+        
+        # انتظار ۲ ساعت
+        await asyncio.sleep(2 * 60 * 60)
 
 if __name__ == "__main__":
     logging.basicConfig(level=logging.INFO)
     print("🤖 ربات مارکتینگ فعال شد...")
-    print("⏰ هر ۲ ساعت پیام ارسال میشه")
+    print("🫀 keep-alive فعال است")
     asyncio.run(main())
